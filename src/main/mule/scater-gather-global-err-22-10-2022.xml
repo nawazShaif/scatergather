@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="5bf5d398-ead7-4303-8067-86da53a827d2" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration doc:name="Configuration" doc:id="3f7b8abe-f796-43ae-8cf4-94a36f5abfd4" defaultErrorHandler-ref="global.errorError_Handler" />
+	<flow name="scater-gather-global-err-22-10-2022Flow" doc:id="72b52720-de12-4352-a26b-1068f64b4121" >
+		<http:listener doc:name="Listener" doc:id="67ec3934-e0d0-416e-9018-90ee082696c7" config-ref="HTTP_Listener_config" path="/test"/>
+		<logger level="INFO" doc:name="Logger" doc:id="6fec19e9-3b63-4680-92fd-536c607fb2d8" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f68ec943-d31a-428e-aff4-e13f82ed0779" >
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="1eec8434-e18e-4af5-bb97-3a8bd4f02d7f" />
+				<http:request method="GET" doc:name="Request" doc:id="614a257b-2350-4691-86ad-652ddaff641f" url="https://reqres.in/api/users?page=2"/>
+				<logger level="INFO" doc:name="Logger" doc:id="be532b14-8cd3-4f06-bb00-4987900c959a" />
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="d4172ee3-c566-498b-9fde-9c8fd4604d7c" />
+				<http:request method="GET" doc:name="Request" doc:id="d2a68aad-2009-486f-b7b9-e939b57555fe" url="https://reqres.in/api/users/2"/>
+				<validation:is-null doc:name="Is null" doc:id="e71a8394-f79a-439d-aa99-bed3433081da" value="#[payload]"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="5d1193e8-6497-46aa-922e-0dad1ea794c2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+"error":error.errorType,
+"des": error.description,
+"corr": correlationId
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d5aa520f-0083-4dd9-aafb-b2e4ab6f8bba" />
+	</flow>
+</mule>
